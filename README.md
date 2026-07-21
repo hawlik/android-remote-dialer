@@ -6,6 +6,8 @@ Built for motorcycles. The tablet shows an incoming call over your navigation ap
 
 The two devices talk over Bluetooth Classic (RFCOMM). No internet, no accounts, no root, and the phone keeps its stock dialer.
 
+**Download the APKs for both apps from the [Releases page](https://github.com/hawlik/android-remote-dialer/releases).**
+
 ## Apps
 
 * `phone` runs on the phone as a background service. It detects calls, executes commands from the tablet, and sends the SMS replies. It has a small status screen and no dialer UI.
@@ -19,7 +21,7 @@ The two devices talk over Bluetooth Classic (RFCOMM). No internet, no accounts, 
 
 ## Get the apps
 
-Download `remote-dialer-phone.apk` and `remote-dialer-tablet.apk` from the [Releases](../../releases) page.
+Download `remote-dialer-phone.apk` and `remote-dialer-tablet.apk` from the [Releases page](https://github.com/hawlik/android-remote-dialer/releases).
 
 Or build them yourself with JDK 17: run `./gradlew assembleDebug` and take the APKs from `phone/build/outputs/apk/debug/` and `tablet/build/outputs/apk/debug/`.
 
