@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Remote Dialer (Phone)</string>
+    <string name="app_title">Remote Dialer</string>
+    <string name="setup_eyebrow">Phone service</string>
+    <string name="setup_section">Setup</string>
+    <string name="grant_permissions">Grant permissions</string>
+    <string name="start_service">Start service</string>
+    <string name="restart_service">Restart service</string>
+    <string name="stop_service">Stop service</string>
+    <string name="autostart_title">Start on boot</string>
+    <string name="autostart_subtitle">Reconnect automatically after a reboot</string>
+    <string name="ignore_battery">Ignore battery optimization</string>
+</resources>

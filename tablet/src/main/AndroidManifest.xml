@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Connect to the phone (RFCOMM client) -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+    <!-- Foreground service that keeps the link alive + call notification -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+
+    <!-- Interrupt the nav app with the incoming-call screen -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!-- Take over the screen over the nav app even while it's in use (and allow
+         launching the call screen from the background) -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!-- Restart the link service after a reboot -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- Ask to be exempt from battery optimization so the service isn't killed -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <application
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.RemoteDialerTablet">
+
+        <!-- The dialer IS the app — always the home screen, connected or not. -->
+        <activity
+            android:name=".DialerActivity"
+            android:exported="true"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Settings/status sub-screen, reached via the dialer's gear. -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:label="@string/settings"
+            android:parentActivityName=".DialerActivity" />
+
+        <!-- Reject-with-SMS quick-reply editor, reached from Settings. -->
+        <activity
+            android:name=".QuickRepliesActivity"
+            android:exported="false"
+            android:label="@string/quick_replies"
+            android:parentActivityName=".MainActivity" />
+
+        <!-- Full-screen incoming-call UI, shown over the nav app / lock screen.
+             singleInstance + empty taskAffinity = the call screen lives alone in
+             a throwaway task, so closing it returns to whatever app was active
+             before (the nav app), instead of surfacing our dialer task. Also
+             guarantees a single instance (no FSI/direct-launch duplicates). -->
+        <activity
+            android:name=".IncomingCallActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=""
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:theme="@style/Theme.RemoteDialerTablet" />
+
+        <service
+            android:name=".LinkService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
+
+        <!-- Auto-start the link on boot and after an app update (system broadcasts
+             → must be exported). -->
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

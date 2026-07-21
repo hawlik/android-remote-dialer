@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Cockpit instrument palette (fixed dark — this is a dash, not an app) -->
+    <color name="bg">#0E1116</color>
+    <color name="surface">#161C24</color>
+    <color name="elevated">#212A35</color>
+    <color name="outline">#2C3542</color>
+    <color name="text">#EEF2F6</color>
+    <color name="muted">#8A94A2</color>
+
+    <!-- Signal colours -->
+    <color name="amber">#F2A63B</color>
+    <color name="green">#25B366</color>
+    <color name="red">#E5484D</color>
+    <color name="on_signal">#0E1116</color>
+</resources>
