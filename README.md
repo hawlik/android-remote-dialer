@@ -17,13 +17,36 @@ The two devices talk over Bluetooth Classic (RFCOMM). No internet, no accounts, 
 * Bluetooth Classic on both devices
 * A phone with a SIM card
 
-## Install and set up
+## Get the apps
 
-1. Pair the phone and the tablet once in Android Bluetooth settings.
-2. Phone app: grant permissions, allow ignoring battery optimization, start the service.
-3. Tablet app: open the gear, grant permissions, allow full screen calls, allow showing over other apps, allow ignoring battery optimization, choose your phone from the paired devices, start the service.
+Download `remote-dialer-phone.apk` and `remote-dialer-tablet.apk` from the [Releases](../../releases) page.
 
-That is the whole setup.
+Or build them yourself with JDK 17: run `./gradlew assembleDebug` and take the APKs from `phone/build/outputs/apk/debug/` and `tablet/build/outputs/apk/debug/`.
+
+## Install step by step
+
+1. Install `remote-dialer-phone.apk` on the phone (the one with the SIM) and `remote-dialer-tablet.apk` on the tablet. The first time you open an APK, Android asks you to allow installs from your browser or file manager. Allow it.
+
+2. Pair the two devices once in Android Bluetooth settings. Open Bluetooth on one device, find the other, and pair. They must show as paired before the apps can connect.
+
+3. Set up the phone app:
+   1. Tap **Grant permissions** and allow every permission it asks for.
+   2. Tap **Ignore battery optimization** and allow it.
+   3. Tap **Start service**. The status dot turns amber, which means the service is running and waiting for the tablet.
+
+4. Set up the tablet app. It opens on the Quick call screen. Tap the gear in the top right to open Settings, then:
+   1. Tap **Grant permissions** and allow them.
+   2. Tap **Allow full screen calls** and turn it on.
+   3. Tap **Show calls over the nav app** and turn it on.
+   4. Tap **Ignore battery optimization** and allow it.
+   5. Tap **Choose phone** and pick your phone from the paired devices.
+   6. Tap **Start service**, then the back arrow to return to Quick call.
+
+5. Within a second or two both status dots turn green. You are connected.
+
+6. Test it. Call the phone from a third number. The tablet should interrupt the screen with the incoming call card. Try accept, decline, and decline with a message.
+
+After this first setup both apps start on boot and reconnect on their own, so you should not need to open either app again.
 
 ## Usage
 
