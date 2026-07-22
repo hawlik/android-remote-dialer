@@ -6,6 +6,7 @@ import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
+import android.view.WindowManager
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -53,6 +54,9 @@ class IncomingCallActivity : AppCompatActivity() {
         live.add(this)
         setShowWhenLocked(true)
         setTurnScreenOn(true)
+        // Hold the screen on for the whole call so it can't sleep out from under
+        // the End-call button. Cleared automatically when this screen finishes.
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         binding = ActivityIncomingCallBinding.inflate(layoutInflater)
         setContentView(binding.root)
