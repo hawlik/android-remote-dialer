@@ -1,81 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- The caller info flexes and scrolls in the middle; the action buttons are
+     pinned to the bottom so they stay on screen at any size or orientation
+     (e.g. a landscape-mounted tablet), rather than a centred stack that clips. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
     android:fitsSystemWindows="true"
-    android:paddingStart="48dp"
-    android:paddingEnd="48dp"
-    android:paddingTop="32dp"
-    android:paddingBottom="40dp">
+    android:paddingStart="40dp"
+    android:paddingEnd="40dp"
+    android:paddingTop="20dp"
+    android:paddingBottom="24dp">
 
-    <TextView
-        android:id="@+id/statusLabel"
-        style="@style/Text.Eyebrow"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="monospace"
-        android:textColor="@color/amber"
-        android:text="@string/incoming_call" />
-
-    <TextView
-        android:id="@+id/callerAvatar"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_marginTop="28dp"
-        android:background="@drawable/bg_avatar"
-        android:gravity="center"
-        android:fontFamily="monospace"
-        android:textColor="@color/amber"
-        android:textSize="44sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/callerName"
+    <!-- Caller info: takes the free space, centred, scrolls if too tall -->
+    <ScrollView
+        android:id="@+id/infoScroll"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="24dp"
-        android:gravity="center"
-        android:textColor="@color/text"
-        android:textSize="46sp"
-        android:textStyle="bold" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:scrollbars="none">
 
-    <TextView
-        android:id="@+id/callerNumber"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/statusLabel"
+                style="@style/Text.Eyebrow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="monospace"
+                android:textColor="@color/amber"
+                android:text="@string/incoming_call" />
+
+            <TextView
+                android:id="@+id/callerAvatar"
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/bg_avatar"
+                android:gravity="center"
+                android:fontFamily="monospace"
+                android:textColor="@color/amber"
+                android:textSize="36sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/callerName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="18dp"
+                android:gravity="center"
+                android:textColor="@color/text"
+                android:textSize="40sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/callerNumber"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="6dp"
+                android:gravity="center"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.03"
+                android:textColor="@color/muted"
+                android:textSize="22sp" />
+
+            <Chronometer
+                android:id="@+id/callTimer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="16dp"
+                android:gravity="center"
+                android:fontFamily="monospace"
+                android:textColor="@color/amber"
+                android:textSize="38sp"
+                android:visibility="gone" />
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Quick-reply picker: shown instead of the caller info -->
+    <ScrollView
+        android:id="@+id/messageListScroll"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="6dp"
-        android:gravity="center"
-        android:fontFamily="monospace"
-        android:letterSpacing="0.03"
-        android:textColor="@color/muted"
-        android:textSize="24sp" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="none"
+        android:visibility="gone">
 
-    <Chronometer
-        android:id="@+id/callTimer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="20dp"
-        android:gravity="center"
-        android:fontFamily="monospace"
-        android:textColor="@color/amber"
-        android:textSize="40sp"
-        android:visibility="gone" />
+        <LinearLayout
+            android:id="@+id/messageList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
 
-    <!-- RINGING: Decline / Accept -->
+    <!-- RINGING: Decline / Accept (pinned to the bottom) -->
     <LinearLayout
         android:id="@+id/ringingButtons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingTop="56dp">
+        android:layout_marginTop="12dp">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/declineButton"
             android:layout_width="0dp"
-            android:layout_height="112dp"
+            android:layout_height="96dp"
             android:layout_weight="1"
             android:layout_marginEnd="10dp"
             android:backgroundTint="@color/red"
@@ -92,7 +127,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/acceptButton"
             android:layout_width="0dp"
-            android:layout_height="112dp"
+            android:layout_height="96dp"
             android:layout_weight="1"
             android:layout_marginStart="10dp"
             android:backgroundTint="@color/green"
@@ -112,8 +147,8 @@
         android:id="@+id/smsButton"
         style="@style/Button.Neutral"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:layout_marginTop="14dp"
+        android:layout_height="60dp"
+        android:layout_marginTop="12dp"
         android:text="@string/decline_with_message"
         android:textSize="18sp"
         android:visibility="gone"
@@ -122,31 +157,12 @@
         app:iconSize="24dp"
         app:iconTint="@color/text" />
 
-    <!-- Quick-reply picker (swapped in over the ringing buttons) -->
-    <ScrollView
-        android:id="@+id/messageListScroll"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="20dp"
-        android:scrollbars="none"
-        android:visibility="gone">
-
-        <LinearLayout
-            android:id="@+id/messageList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-    </ScrollView>
-
     <!-- ACTIVE / DIALING: End call -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/endButton"
         android:layout_width="match_parent"
-        android:layout_height="112dp"
-        android:layout_marginTop="56dp"
-        android:layout_marginStart="40dp"
-        android:layout_marginEnd="40dp"
+        android:layout_height="96dp"
+        android:layout_marginTop="12dp"
         android:backgroundTint="@color/red"
         android:text="@string/end_call"
         android:textColor="#FFFFFF"

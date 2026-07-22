@@ -1,5 +1,7 @@
 package com.remotedialer.tablet
 
+import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Gravity
@@ -32,6 +34,20 @@ class IncomingCallActivity : AppCompatActivity() {
     private val callListener: (LinkState.CallPhase) -> Unit =
         { phase -> runOnUiThread { render(phase) } }
 
+    override fun attachBaseContext(newBase: Context) {
+        // The action buttons are pinned and sized in dp, so they never move with
+        // the system font. This additionally caps how large the caller text can
+        // grow, so a very large system font setting can't force the info to scroll
+        // either — the whole call screen stays glanceable at a glance.
+        val config = Configuration(newBase.resources.configuration)
+        if (config.fontScale > MAX_FONT_SCALE) {
+            config.fontScale = MAX_FONT_SCALE
+            super.attachBaseContext(newBase.createConfigurationContext(config))
+        } else {
+            super.attachBaseContext(newBase)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         live.add(this)
@@ -63,10 +79,9 @@ class IncomingCallActivity : AppCompatActivity() {
         binding.callerName.text = LinkState.callerName.ifBlank { "Unknown caller" }
         binding.callerNumber.text = LinkState.callerNumber
         binding.callerAvatar.text = initials(LinkState.callerName, LinkState.callerNumber)
-        // Any phase change dismisses the quick-reply picker and restores the header.
+        // Any phase change dismisses the quick-reply picker and restores the caller info.
         binding.messageListScroll.visibility = View.GONE
-        binding.callerAvatar.visibility = View.VISIBLE
-        binding.callerNumber.visibility = View.VISIBLE
+        binding.infoScroll.visibility = View.VISIBLE
         when (phase) {
             LinkState.CallPhase.RINGING -> {
                 binding.statusLabel.setText(R.string.incoming_call)
@@ -114,8 +129,7 @@ class IncomingCallActivity : AppCompatActivity() {
     private fun showReplies() {
         binding.ringingButtons.visibility = View.GONE
         binding.smsButton.visibility = View.GONE
-        binding.callerAvatar.visibility = View.GONE
-        binding.callerNumber.visibility = View.GONE
+        binding.infoScroll.visibility = View.GONE
 
         val list = binding.messageList
         list.removeAllViews()
@@ -178,6 +192,10 @@ class IncomingCallActivity : AppCompatActivity() {
     }
 
     companion object {
+        // Honour the user's larger text up to here, then stop growing so the
+        // fixed-size call screen keeps fitting (matches Android's "Largest" step).
+        private const val MAX_FONT_SCALE = 1.3f
+
         // All live call-screen instances. Belt-and-braces: the overlay direct
         // launch and the full-screen intent can race into two stacked instances;
         // the service closes every one of them when the call ends, instead of
