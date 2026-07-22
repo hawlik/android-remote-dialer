@@ -1,5 +1,6 @@
 package com.remotedialer.phone
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -12,6 +13,7 @@ import android.content.pm.ServiceInfo
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.telecom.TelecomManager
 import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -30,6 +32,12 @@ class CallMonitorService : Service() {
 
     private val channelId = "call_monitor"
     private var lastNumber: String? = null
+
+    // True while we're relaying a conventional (managed/SIM) call. Self-managed
+    // VoIP calls (WhatsApp/Messenger/…) are ignored — the tablet only handles
+    // real phone calls. Managed calls stay managed even with a hidden number, so
+    // this drops VoIP without dropping withheld-number cellular calls.
+    private var forwardingCall = false
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private lateinit var tabletLink: TabletLink
@@ -88,6 +96,13 @@ class CallMonitorService : Service() {
         if (!number.isNullOrBlank()) lastNumber = number
         when (state) {
             TelephonyManager.EXTRA_STATE_RINGING -> {
+                if (!isManagedCall()) {
+                    forwardingCall = false
+                    Log.i(TAG, "Ignoring VoIP call (self-managed)")
+                    PhoneCallState.update("Ignoring app call (not a phone call)")
+                    return
+                }
+                forwardingCall = true
                 val n = number ?: lastNumber ?: "unknown"
                 // Send a blank name when the contact is unknown — each tablet
                 // surface picks its own fallback (the pill shows the number).
@@ -98,6 +113,13 @@ class CallMonitorService : Service() {
                 tabletLink.send(Message.Ring(name, n))
             }
             TelephonyManager.EXTRA_STATE_OFFHOOK -> {
+                // Forward if we're already relaying this call (answered incoming) or
+                // it's a managed call we placed (outbound dial); ignore VoIP.
+                if (!forwardingCall && !isManagedCall()) {
+                    Log.i(TAG, "OFFHOOK ignored (self-managed call)")
+                    return
+                }
+                forwardingCall = true
                 val msg = "In call — ${lastNumber ?: "unknown"}"
                 Log.i(TAG, msg)
                 PhoneCallState.update(msg)
@@ -106,7 +128,10 @@ class CallMonitorService : Service() {
             TelephonyManager.EXTRA_STATE_IDLE -> {
                 Log.i(TAG, "Call ended / idle")
                 PhoneCallState.update("Idle — waiting for calls")
-                tabletLink.send(Message.CallEnded)
+                if (forwardingCall) {
+                    tabletLink.send(Message.CallEnded)
+                    forwardingCall = false
+                }
                 lastNumber = null
             }
         }
@@ -128,6 +153,18 @@ class CallMonitorService : Service() {
             // Ring / CallActive / CallEnded / Contacts / Recents are phone→tablet only.
             else -> Log.w(TAG, "Ignoring unexpected message from tablet: $message")
         }
+    }
+
+    /**
+     * Whether the current call is a conventional managed call (SIM/PSTN) versus a
+     * self-managed VoIP call (WhatsApp/etc.). Confirmed on-device to be true even
+     * for a numberless/hidden cellular ring and false for WhatsApp. Fails open so a
+     * real call is never dropped on a query error. Needs READ_PHONE_STATE.
+     */
+    @SuppressLint("MissingPermission") // READ_PHONE_STATE is requested in MainActivity; runCatching fails open
+    private fun isManagedCall(): Boolean {
+        val tm = getSystemService(TelecomManager::class.java)
+        return runCatching { tm.isInManagedCall }.getOrDefault(true)
     }
 
     /** Read starred contacts + recent calls off-main and push them to the tablet. */

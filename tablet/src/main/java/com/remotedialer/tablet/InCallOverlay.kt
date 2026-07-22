@@ -56,8 +56,7 @@ class InCallOverlay(private val context: Context) {
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            // Nav keeps input focus everywhere outside the pill; the screen stays
-            // on for the whole call in widget mode, matching the call screen.
+            // NOT_FOCUSABLE so touches outside the pill pass through to the nav app.
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
             PixelFormat.TRANSLUCENT,
