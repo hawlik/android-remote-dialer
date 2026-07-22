@@ -89,8 +89,10 @@ class CallMonitorService : Service() {
         when (state) {
             TelephonyManager.EXTRA_STATE_RINGING -> {
                 val n = number ?: lastNumber ?: "unknown"
-                val name = CallerLookup.resolveName(this, n) ?: "Unknown caller"
-                val msg = "INCOMING: $name  ($n)"
+                // Send a blank name when the contact is unknown — each tablet
+                // surface picks its own fallback (the pill shows the number).
+                val name = CallerLookup.resolveName(this, n).orEmpty()
+                val msg = "INCOMING: ${name.ifBlank { "Unknown" }}  ($n)"
                 Log.i(TAG, msg)
                 PhoneCallState.update(msg)
                 tabletLink.send(Message.Ring(name, n))

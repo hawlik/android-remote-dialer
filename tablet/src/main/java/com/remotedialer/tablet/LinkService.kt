@@ -31,6 +31,8 @@ class LinkService : Service() {
     // don't overwrite the "Service stopped" state.
     @Volatile private var stopping = false
 
+    private val inCallOverlay = InCallOverlay(this)
+
     override fun onCreate() {
         super.onCreate()
         createChannels()
@@ -69,26 +71,38 @@ class LinkService : Service() {
     private fun handleEvent(message: Message) {
         when (message) {
             is Message.Ring -> {
-                LinkState.onRinging(message.name, message.number)
-                LinkState.update("Incoming: ${message.name} (${message.number})")
-                showRingingNotification(message.name, message.number)
+                // Compat shim: phone builds up to v0.2 send the literal
+                // "Unknown caller" when the contact can't be resolved; newer ones
+                // send a blank name. Normalise so every surface (pill included)
+                // falls back to the caller's number.
+                val name = if (message.name == "Unknown caller") "" else message.name
+                LinkState.onRinging(name, message.number)
+                LinkState.update("Incoming: ${name.ifBlank { message.number }}")
+                showRingingNotification(name, message.number)
                 launchCallScreenIfAllowed()
             }
             Message.CallActive -> {
                 LinkState.onActive()
                 LinkState.update("In call")
-                // Keep an ongoing notification so the in-call screen is reachable
-                // even if the rider swiped it away; the call screen itself observes
-                // LinkState and switches to the timer + End-call button. (The call
-                // screen is opened directly — by the Ring full-screen intent for
-                // incoming calls, by DialerActivity for outbound — so it's already
-                // showing by the time we get here.)
-                showInCallNotification()
+                // With the overlay permission, the active call is a floating pill
+                // over the nav app instead of the full-screen view: close the call
+                // screen so nav resurfaces, then float the widget on top. The pill
+                // IS the in-call UI, so no notification — a heads-up banner would
+                // just overlap it. Without the permission, fall back to the
+                // full-screen view plus the reopenable in-call notification.
+                if (Settings.canDrawOverlays(this)) {
+                    dismissCall() // clear the ringing notification
+                    IncomingCallActivity.finishAll()
+                    inCallOverlay.show()
+                } else {
+                    showInCallNotification()
+                }
             }
             Message.CallEnded -> {
                 LinkState.onIdle()
                 LinkState.update("Idle")
                 dismissCall()
+                inCallOverlay.hide()
                 // Explicitly close every live call screen — don't rely on the
                 // callListener chain alone (stale/stacked instances stay open).
                 IncomingCallActivity.finishAll()
@@ -117,6 +131,7 @@ class LinkService : Service() {
             // Link lost — clear any call UI (we can no longer control it).
             LinkState.onIdle()
             dismissCall()
+            inCallOverlay.hide()
             IncomingCallActivity.finishAll()
         }
     }
@@ -159,7 +174,7 @@ class LinkService : Service() {
     private fun showRingingNotification(name: String, number: String) {
         val notification = NotificationCompat.Builder(this, CHANNEL_CALL)
             .setContentTitle("Incoming call")
-            .setContentText("$name  ($number)")
+            .setContentText(if (name.isBlank()) number else "$name  ($number)")
             .setSmallIcon(R.drawable.ic_call)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_CALL)
@@ -189,6 +204,7 @@ class LinkService : Service() {
         super.onDestroy()
         stopping = true
         LinkState.serviceRunning = false
+        inCallOverlay.hide()
         phoneLink?.stop()
         phoneLink = null
         LinkState.commandSender = null

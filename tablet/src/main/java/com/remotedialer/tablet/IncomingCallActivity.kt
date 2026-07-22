@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Typeface
 import android.os.Bundle
+import android.provider.Settings
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
@@ -107,6 +108,13 @@ class IncomingCallActivity : AppCompatActivity() {
                 binding.endButton.visibility = View.VISIBLE
             }
             LinkState.CallPhase.ACTIVE -> {
+                // With the overlay permission the active call lives in the
+                // floating pill over the nav app — this screen steps aside.
+                // Without it, fall back to the full-screen timer + End view.
+                if (Settings.canDrawOverlays(this)) {
+                    finish()
+                    return
+                }
                 binding.statusLabel.visibility = View.GONE
                 binding.ringingButtons.visibility = View.GONE
                 binding.smsButton.visibility = View.GONE

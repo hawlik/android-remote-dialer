@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Floating in-call pill shown over the nav app while a call is active:
+     caller · timer · End. Kept to one row so it hides as little map as possible. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@drawable/bg_chip"
+    android:paddingStart="24dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="12dp">
+
+    <TextView
+        android:id="@+id/overlayCaller"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxWidth="280dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/text"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <Chronometer
+        android:id="@+id/overlayTimer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="18dp"
+        android:fontFamily="monospace"
+        android:textColor="@color/amber"
+        android:textSize="24sp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/overlayEndButton"
+        android:layout_width="wrap_content"
+        android:layout_height="68dp"
+        android:layout_marginStart="20dp"
+        android:backgroundTint="@color/red"
+        android:text="@string/end_call"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:cornerRadius="20dp"
+        app:icon="@drawable/ic_call_end"
+        app:iconGravity="textStart"
+        app:iconSize="26dp"
+        app:iconTint="#FFFFFF" />
+</LinearLayout>
