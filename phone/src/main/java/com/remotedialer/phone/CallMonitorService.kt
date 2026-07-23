@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -90,7 +91,14 @@ class CallMonitorService : Service() {
         PhoneCallState.update("Service running — waiting for calls")
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_STOP) {
+            PhoneCallState.update("Service stopped")
+            stopSelf()
+            return START_NOT_STICKY
+        }
+        return START_STICKY
+    }
 
     private fun handleState(state: String?, number: String?) {
         if (!number.isNullOrBlank()) lastNumber = number
@@ -209,16 +217,24 @@ class CallMonitorService : Service() {
         getSystemService(NotificationManager::class.java).notify(NOTIF_ID, buildNotification(text))
     }
 
-    private fun buildNotification(text: String): Notification =
-        NotificationCompat.Builder(this, channelId)
+    private fun buildNotification(text: String): Notification {
+        val stopIntent = PendingIntent.getService(
+            this, 0,
+            Intent(this, CallMonitorService::class.java).setAction(ACTION_STOP),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        return NotificationCompat.Builder(this, channelId)
             .setContentTitle("Remote Dialer")
             .setContentText(text)
             .setSmallIcon(R.drawable.ic_call)
             .setOngoing(true)
+            .addAction(R.drawable.ic_stop, getString(R.string.stop_service), stopIntent)
             .build()
+    }
 
     companion object {
         private const val TAG = "CallMonitor"
         private const val NOTIF_ID = 1
+        private const val ACTION_STOP = "com.remotedialer.phone.action.STOP"
     }
 }
